@@ -7,11 +7,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/qor/admin"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
+	"github.com/aghape/admin"
+	"github.com/aghape/aghape"
+	"github.com/aghape/aghape/resource"
+	"github.com/aghape/aghape/utils"
+	"github.com/aghape/roles"
+	"github.com/moisespsena/go-route"
 )
 
 // Global global language
@@ -189,65 +190,64 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 			})
 		}
 
-		// Inject for l10n
-		Admin.RegisterViewPath("github.com/qor/l10n/views")
-
-		// Middleware
-		Admin.GetRouter().Use(&admin.Middleware{
-			Name: "l10n_set_locale",
-			Handler: func(context *admin.Context, middleware *admin.Middleware) {
-				db := context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context))
-				if mode := context.Request.URL.Query().Get("locale_mode"); mode != "" {
-					db = db.Set("l10n:mode", mode)
-				}
-
-				usingLanguageCodeAsPrimaryKey := false
-				if res := context.Resource; res != nil {
-					for idx, primaryField := range res.PrimaryFields {
-						if primaryField.Name == "LanguageCode" {
-							_, params := res.ToPrimaryQueryParams(res.GetPrimaryValue(context.Request), context.Context)
-							if len(params) > idx {
-								usingLanguageCodeAsPrimaryKey = true
-								db = db.Set("l10n:locale", params[idx])
-
-								// PUT usually used for localize
-								if context.Request.Method == "PUT" {
-									if _, ok := db.Get("l10n:localize_to"); !ok {
-										db = db.Set("l10n:localize_to", getLocaleFromContext(context.Context))
-									}
-								}
-								break
-							}
-						}
+		if Admin.Router.GetMiddleware("qor:l10n.set_locale") == nil {
+			// Middleware
+			Admin.Router.Use(&route.Middleware{
+				Name: "qor:l10n.set_locale",
+				Handler: func(chain *route.ChainHandler) {
+					context := admin.ContextFromChain(chain)
+					db := context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context))
+					if mode := context.Request.URL.Query().Get("locale_mode"); mode != "" {
+						db = db.Set("l10n:mode", mode)
 					}
-				}
 
-				if !usingLanguageCodeAsPrimaryKey {
-					for key, values := range context.Request.URL.Query() {
-						if regexp.MustCompile(`primary_key\[.+_language_code\]`).MatchString(key) {
-							if len(values) > 0 {
-								db = db.Set("l10n:locale", values[0])
+					usingLanguageCodeAsPrimaryKey := false
+					if res := context.Resource; res != nil {
+						for idx, primaryField := range res.PrimaryFields {
+							if primaryField.Name == "LanguageCode" {
+								_, params := res.ToPrimaryQueryParams(context.URLParam(res.ParamIDName()))
+								if len(params) > idx {
+									usingLanguageCodeAsPrimaryKey = true
+									db = db.Set("l10n:locale", params[idx])
 
-								// PUT usually used for localize
-								if context.Request.Method == "PUT" || context.Request.Method == "POST" {
-									db = db.Set(key, "")
-									if _, ok := db.Get("l10n:localize_to"); !ok {
-										db = db.Set("l10n:localize_to", getLocaleFromContext(context.Context))
+									// PUT usually used for localize
+									if context.Request.Method == "PUT" {
+										if _, ok := db.Get("l10n:localize_to"); !ok {
+											db = db.Set("l10n:localize_to", getLocaleFromContext(context.Context))
+										}
 									}
+									break
 								}
 							}
 						}
 					}
-				}
 
-				if context.Request.URL.Query().Get("sorting") != "" {
-					db = db.Set("l10n:mode", "locale")
-				}
-				context.SetDB(db)
+					if !usingLanguageCodeAsPrimaryKey {
+						for key, values := range context.Request.URL.Query() {
+							if regexp.MustCompile(`primary_key\[.+_language_code\]`).MatchString(key) {
+								if len(values) > 0 {
+									db = db.Set("l10n:locale", values[0])
 
-				middleware.Next(context)
-			},
-		})
+									// PUT usually used for localize
+									if context.Request.Method == "PUT" || context.Request.Method == "POST" {
+										db = db.Set(key, "")
+										if _, ok := db.Get("l10n:localize_to"); !ok {
+											db = db.Set("l10n:localize_to", getLocaleFromContext(context.Context))
+										}
+									}
+								}
+							}
+						}
+					}
+
+					if context.Request.URL.Query().Get("sorting") != "" {
+						db = db.Set("l10n:mode", "locale")
+					}
+					context.SetDB(db)
+					chain.Pass()
+				},
+			})
+		}
 
 		// FunMap
 		Admin.RegisterFuncMap("current_locale", func(context admin.Context) string {
@@ -321,7 +321,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 					)
 
 					for _, primaryValue := range argument.PrimaryValues {
-						primaryQuerySQL, primaryParams := res.ToPrimaryQueryParams(primaryValue, argument.Context.Context)
+						primaryQuerySQL, primaryParams := res.ToPrimaryQueryParams(primaryValue)
 						sqls = append(sqls, primaryQuerySQL)
 						sqlParams = append(sqlParams, primaryParams...)
 					}

@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor/utils"
+	"github.com/aghape/aghape/utils"
 )
 
 func beforeQuery(scope *gorm.Scope) {
