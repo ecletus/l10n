@@ -3,7 +3,7 @@ package l10n_test
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"github.com/moisespsena-go/aorm"
 	"github.com/aghape/l10n"
 	"github.com/aghape/aghape/test/utils"
 )
@@ -55,7 +55,7 @@ type Category struct {
 	l10n.Locale
 }
 
-var dbGlobal, dbCN, dbEN *gorm.DB
+var dbGlobal, dbCN, dbEN *aorm.DB
 
 func init() {
 	db := utils.TestDB()

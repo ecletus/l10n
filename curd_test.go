@@ -3,7 +3,7 @@ package l10n_test
 import (
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"github.com/moisespsena-go/aorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/aghape/l10n"
 
@@ -16,14 +16,14 @@ func checkHasErr(t *testing.T, err error) {
 	}
 }
 
-func checkHasProductInLocale(db *gorm.DB, locale string, t *testing.T) {
+func checkHasProductInLocale(db *aorm.DB, locale string, t *testing.T) {
 	var count int
 	if db.Set("l10n:locale", locale).Count(&count); count != 1 {
 		t.Errorf("should has only one product for locale %v, but found %v", locale, count)
 	}
 }
 
-func checkHasProductInAllLocales(db *gorm.DB, t *testing.T) {
+func checkHasProductInAllLocales(db *aorm.DB, t *testing.T) {
 	checkHasProductInLocale(db, l10n.Global, t)
 	checkHasProductInLocale(db, "zh", t)
 	checkHasProductInLocale(db, "en", t)
@@ -71,7 +71,7 @@ func TestUpdate(t *testing.T) {
 	checkHasProductInLocale(sharedDB.Where("name = ?", "New English Name"), "en", t)
 
 	// Check sync columns with UpdateColumn
-	dbGlobal.Model(&Product{}).Where("id = ?", product.ID).UpdateColumns(map[string]interface{}{"quantity": gorm.Expr("quantity + ?", 2)})
+	dbGlobal.Model(&Product{}).Where("id = ?", product.ID).UpdateColumns(map[string]interface{}{"quantity": aorm.Expr("quantity + ?", 2)})
 
 	var newGlobalProduct Product
 	var newENProduct Product

@@ -3,12 +3,12 @@ package l10n
 import (
 	"reflect"
 
-	"github.com/jinzhu/gorm"
+	"github.com/moisespsena-go/aorm"
 	"github.com/aghape/aghape/utils"
 )
 
 // IsLocalizable return model is localizable or not
-func IsLocalizable(scope *gorm.Scope) (IsLocalizable bool) {
+func IsLocalizable(scope *aorm.Scope) (IsLocalizable bool) {
 	if scope.GetModelStruct().ModelType == nil {
 		return false
 	}
@@ -24,7 +24,7 @@ type localeCreatableInterface2 interface {
 	LocaleCreatable()
 }
 
-func isLocaleCreatable(scope *gorm.Scope) (ok bool) {
+func isLocaleCreatable(scope *aorm.Scope) (ok bool) {
 	if _, ok = reflect.New(scope.GetModelStruct().ModelType).Interface().(localeCreatableInterface); ok {
 		return
 	}
@@ -32,7 +32,7 @@ func isLocaleCreatable(scope *gorm.Scope) (ok bool) {
 	return
 }
 
-func setLocale(scope *gorm.Scope, locale string) {
+func setLocale(scope *aorm.Scope, locale string) {
 	for _, field := range scope.Fields() {
 		if field.Name == "LanguageCode" {
 			field.Set(locale)
@@ -40,7 +40,7 @@ func setLocale(scope *gorm.Scope, locale string) {
 	}
 }
 
-func getQueryLocale(scope *gorm.Scope) (locale string, isLocale bool) {
+func getQueryLocale(scope *aorm.Scope) (locale string, isLocale bool) {
 	if str, ok := scope.DB().Get("l10n:locale"); ok {
 		if locale, ok := str.(string); ok && locale != "" {
 			return locale, locale != Global
@@ -49,7 +49,7 @@ func getQueryLocale(scope *gorm.Scope) (locale string, isLocale bool) {
 	return Global, false
 }
 
-func getLocale(scope *gorm.Scope) (locale string, isLocale bool) {
+func getLocale(scope *aorm.Scope) (locale string, isLocale bool) {
 	if str, ok := scope.DB().Get("l10n:localize_to"); ok {
 		if locale, ok := str.(string); ok && locale != "" {
 			return locale, locale != Global
@@ -59,14 +59,14 @@ func getLocale(scope *gorm.Scope) (locale string, isLocale bool) {
 	return getQueryLocale(scope)
 }
 
-func isSyncField(field *gorm.StructField) bool {
+func isSyncField(field *aorm.StructField) bool {
 	if _, ok := utils.ParseTagOption(field.Tag.Get("l10n"))["SYNC"]; ok {
 		return true
 	}
 	return false
 }
 
-func syncColumns(scope *gorm.Scope) (columns []string) {
+func syncColumns(scope *aorm.Scope) (columns []string) {
 	for _, field := range scope.GetModelStruct().StructFields {
 		if isSyncField(field) {
 			columns = append(columns, field.DBName)

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/jinzhu/gorm"
+	"github.com/moisespsena-go/aorm"
 	"github.com/aghape/aghape/utils"
 )
 
-func beforeQuery(scope *gorm.Scope) {
+func beforeQuery(scope *aorm.Scope) {
 	if IsLocalizable(scope) {
 		quotedTableName := scope.QuotedTableName()
 		quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
@@ -37,7 +37,7 @@ func beforeQuery(scope *gorm.Scope) {
 				} else {
 					scope.Search.Where(fmt.Sprintf("(%v.%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ?) AND %v.language_code = ?) OR (%v.language_code = ?)", quotedTableName, quotedPrimaryKey, quotedPrimaryKey, quotedTableName, quotedTableName, quotedTableName), locale, Global, locale)
 				}
-				scope.Search.Order(gorm.Expr(fmt.Sprintf("%v.language_code = ? DESC", quotedTableName), locale))
+				scope.Search.Order(aorm.Expr(fmt.Sprintf("%v.language_code = ? DESC", quotedTableName), locale))
 			} else {
 				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
 			}
@@ -45,7 +45,7 @@ func beforeQuery(scope *gorm.Scope) {
 	}
 }
 
-func beforeCreate(scope *gorm.Scope) {
+func beforeCreate(scope *aorm.Scope) {
 	if IsLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
 			if isLocaleCreatable(scope) || !scope.PrimaryKeyZero() {
@@ -60,7 +60,7 @@ func beforeCreate(scope *gorm.Scope) {
 	}
 }
 
-func beforeUpdate(scope *gorm.Scope) {
+func beforeUpdate(scope *aorm.Scope) {
 	if IsLocalizable(scope) {
 		locale, isLocale := getLocale(scope)
 
@@ -77,7 +77,7 @@ func beforeUpdate(scope *gorm.Scope) {
 	}
 }
 
-func afterUpdate(scope *gorm.Scope) {
+func afterUpdate(scope *aorm.Scope) {
 	if !scope.HasError() {
 		if IsLocalizable(scope) {
 			if locale, ok := getLocale(scope); ok {
@@ -132,7 +132,7 @@ func afterUpdate(scope *gorm.Scope) {
 	}
 }
 
-func beforeDelete(scope *gorm.Scope) {
+func beforeDelete(scope *aorm.Scope) {
 	if IsLocalizable(scope) {
 		if locale, ok := getQueryLocale(scope); ok { // is locale
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
@@ -141,7 +141,7 @@ func beforeDelete(scope *gorm.Scope) {
 }
 
 // RegisterCallbacks register callback into GORM DB
-func RegisterCallbacks(db *gorm.DB) {
+func RegisterCallbacks(db *aorm.DB) {
 	callback := db.Callback()
 
 	callback.Create().Before("gorm:before_create").Register("l10n:before_create", beforeCreate)

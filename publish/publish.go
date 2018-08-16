@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jinzhu/gorm"
+	"github.com/moisespsena-go/aorm"
 	"github.com/aghape/admin"
 	"github.com/aghape/l10n"
 	"github.com/aghape/publish"
@@ -41,11 +41,11 @@ func getPublishableLocales(req *http.Request, currentUser interface{}) []string 
 // RegisterL10nForPublish register l10n language switcher for publish
 func RegisterL10nForPublish(Publish *publish.Publish, Admin *admin.Admin) {
 	searchHandler := Publish.SearchHandler
-	Publish.SearchHandler = func(db *gorm.DB, context *qor.Context) *gorm.DB {
+	Publish.SearchHandler = func(db *aorm.DB, context *qor.Context) *aorm.DB {
 		if context != nil {
 			if context.Request != nil && context.Request.URL.Query().Get("locale") == "" {
 				publishableLocales := getPublishableLocales(context.Request, context.CurrentUser)
-				return searchHandler(db, context).Set("l10n:mode", "unscoped").Scopes(func(db *gorm.DB) *gorm.DB {
+				return searchHandler(db, context).Set("l10n:mode", "unscoped").Scopes(func(db *aorm.DB) *aorm.DB {
 					scope := db.NewScope(db.Value)
 					if l10n.IsLocalizable(scope) {
 						return db.Where(fmt.Sprintf("%v.language_code IN (?)", scope.QuotedTableName()), publishableLocales)
