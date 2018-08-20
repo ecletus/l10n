@@ -2,14 +2,16 @@ package l10n
 
 import (
 	"github.com/aghape/db"
+	"github.com/aghape/plug"
 )
 
 type Plugin struct {
-	db.DisDBNames
+	db.DBNames
+	plug.EventDispatcher
 }
 
 func (p *Plugin) OnRegister() {
-	p.DBOnInitGorm(func(e *db.GormDBEvent) {
+	db.Events(p).DBOnInitGorm(func(e *db.GormDBEvent) {
 		RegisterCallbacks(e.DB)
 	})
 }
