@@ -5,7 +5,7 @@ import (
 
 	"github.com/moisespsena-go/aorm"
 	"github.com/aghape/l10n"
-	"github.com/aghape/aghape/test/utils"
+	"github.com/aghape/core/test/utils"
 )
 
 type Product struct {

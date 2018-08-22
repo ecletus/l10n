@@ -8,7 +8,7 @@ import (
 	"github.com/aghape/admin"
 	"github.com/aghape/l10n"
 	"github.com/aghape/publish"
-	"github.com/aghape/aghape"
+	"github.com/aghape/core"
 )
 
 type availableLocalesInterface interface {
@@ -41,7 +41,7 @@ func getPublishableLocales(req *http.Request, currentUser interface{}) []string 
 // RegisterL10nForPublish register l10n language switcher for publish
 func RegisterL10nForPublish(Publish *publish.Publish, Admin *admin.Admin) {
 	searchHandler := Publish.SearchHandler
-	Publish.SearchHandler = func(db *aorm.DB, context *qor.Context) *aorm.DB {
+	Publish.SearchHandler = func(db *aorm.DB, context *core.Context) *aorm.DB {
 		if context != nil {
 			if context.Request != nil && context.Request.URL.Query().Get("locale") == "" {
 				publishableLocales := getPublishableLocales(context.Request, context.CurrentUser)

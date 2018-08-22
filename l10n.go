@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/aghape/admin"
-	"github.com/aghape/aghape"
-	"github.com/aghape/aghape/resource"
-	"github.com/aghape/aghape/utils"
+	"github.com/aghape/core"
+	"github.com/aghape/core/resource"
+	"github.com/aghape/core/utils"
 	"github.com/aghape/roles"
 	"github.com/moisespsena/go-route"
 )
@@ -80,7 +80,7 @@ func getEditableLocales(req *http.Request, currentUser interface{}) []string {
 	return []string{Global}
 }
 
-func getLocaleFromContext(context *qor.Context) string {
+func getLocaleFromContext(context *core.Context) string {
 	if locale := utils.GetLocale(context); locale != "" {
 		return locale
 	}
@@ -106,7 +106,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 		res.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
 		if res.GetMeta("Localization") == nil {
-			res.Meta(&admin.Meta{Name: "Localization", Type: "localization", Valuer: func(value interface{}, ctx *qor.Context) interface{} {
+			res.Meta(&admin.Meta{Name: "Localization", Type: "localization", Valuer: func(value interface{}, ctx *core.Context) interface{} {
 				var languageCodes []string
 				var db = ctx.GetDB()
 				var scope = db.NewScope(value)
@@ -134,7 +134,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 		res.ShowAttrs(res.ShowAttrs(), "-LanguageCode", "-Localization", false)
 
 		// Set meta permissions
-		for _, field := range qor.FakeDB.NewScope(res.Value).Fields() {
+		for _, field := range core.FakeDB.NewScope(res.Value).Fields() {
 			if isSyncField(field.StructField) {
 				if meta := res.GetMeta(field.Name); meta != nil {
 					permission := meta.Meta.Permission
@@ -155,7 +155,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 		role := res.Permission.Role
 		if _, ok := role.Get("global_admin"); !ok {
 			role.Register("global_admin", func(req *http.Request, currentUser interface{}) bool {
-				if getLocaleFromContext(&qor.Context{Request: req}) == Global {
+				if getLocaleFromContext(&core.Context{Request: req}) == Global {
 					for _, locale := range getEditableLocales(req, currentUser) {
 						if locale == Global {
 							return true
@@ -168,7 +168,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 
 		if _, ok := role.Get("locale_admin"); !ok {
 			role.Register("locale_admin", func(req *http.Request, currentUser interface{}) bool {
-				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+				currentLocale := getLocaleFromContext(&core.Context{Request: req})
 				for _, locale := range getEditableLocales(req, currentUser) {
 					if locale == currentLocale {
 						return true
@@ -180,7 +180,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 
 		if _, ok := role.Get("locale_reader"); !ok {
 			role.Register("locale_reader", func(req *http.Request, currentUser interface{}) bool {
-				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+				currentLocale := getLocaleFromContext(&core.Context{Request: req})
 				for _, locale := range getAvailableLocales(req, currentUser) {
 					if locale == currentLocale {
 						return true
@@ -285,10 +285,10 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 			argumentResource.Meta(&admin.Meta{
 				Name: "From",
 				Type: "select_one",
-				Valuer: func(_ interface{}, context *qor.Context) interface{} {
+				Valuer: func(_ interface{}, context *core.Context) interface{} {
 					return Global
 				},
-				Collection: func(value interface{}, context *qor.Context) (results [][]string) {
+				Collection: func(value interface{}, context *core.Context) (results [][]string) {
 					for _, locale := range getAvailableLocales(context.Request, context.CurrentUser) {
 						results = append(results, []string{locale, locale})
 					}
@@ -298,10 +298,10 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 			argumentResource.Meta(&admin.Meta{
 				Name: "To",
 				Type: "select_many",
-				Valuer: func(_ interface{}, context *qor.Context) interface{} {
+				Valuer: func(_ interface{}, context *core.Context) interface{} {
 					return []string{getLocaleFromContext(context)}
 				},
-				Collection: func(value interface{}, context *qor.Context) (results [][]string) {
+				Collection: func(value interface{}, context *core.Context) (results [][]string) {
 					for _, locale := range getEditableLocales(context.Request, context.CurrentUser) {
 						results = append(results, []string{locale, locale})
 					}
