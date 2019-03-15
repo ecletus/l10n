@@ -44,7 +44,7 @@ func RegisterL10nForPublish(Publish *publish.Publish, Admin *admin.Admin) {
 	Publish.SearchHandler = func(db *aorm.DB, context *core.Context) *aorm.DB {
 		if context != nil {
 			if context.Request != nil && context.Request.URL.Query().Get("locale") == "" {
-				publishableLocales := getPublishableLocales(context.Request, context.CurrentUser)
+				publishableLocales := getPublishableLocales(context.Request, context.currentUser)
 				return searchHandler(db, context).Set("l10n:mode", "unscoped").Scopes(func(db *aorm.DB) *aorm.DB {
 					scope := db.NewScope(db.Value)
 					if l10n.IsLocalizable(scope) {
@@ -61,6 +61,6 @@ func RegisterL10nForPublish(Publish *publish.Publish, Admin *admin.Admin) {
 	Admin.RegisterViewPath("github.com/aghape/l10n/publish/views")
 
 	Admin.RegisterFuncMap("publishable_locales", func(context admin.Context) []string {
-		return getPublishableLocales(context.Request, context.CurrentUser)
+		return getPublishableLocales(context.Request, context.currentUser)
 	})
 }

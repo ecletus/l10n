@@ -11,7 +11,7 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnRegister() {
-	db.Events(p).DBOnInitGorm(func(e *db.GormDBEvent) {
-		RegisterCallbacks(e.DB)
+	db.Events(p).DBOnInitGorm(func(e *db.DBEvent) {
+		RegisterCallbacks(e.DB.DB)
 	})
 }
