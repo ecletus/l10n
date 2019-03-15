@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/moisespsena-go/aorm"
-	"github.com/aghape/core/utils"
+	"github.com/ecletus/core/utils"
 )
 
 // IsLocalizable return model is localizable or not

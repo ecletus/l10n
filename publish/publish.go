@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/moisespsena-go/aorm"
-	"github.com/aghape/admin"
-	"github.com/aghape/l10n"
-	"github.com/aghape/publish"
-	"github.com/aghape/core"
+	"github.com/ecletus/admin"
+	"github.com/ecletus/l10n"
+	"github.com/ecletus/publish"
+	"github.com/ecletus/core"
 )
 
 type availableLocalesInterface interface {
@@ -58,7 +58,7 @@ func RegisterL10nForPublish(Publish *publish.Publish, Admin *admin.Admin) {
 		return searchHandler(db, context).Set("l10n:mode", "unscoped")
 	}
 
-	Admin.RegisterViewPath("github.com/aghape/l10n/publish/views")
+	Admin.RegisterViewPath("github.com/ecletus/l10n/publish/views")
 
 	Admin.RegisterFuncMap("publishable_locales", func(context admin.Context) []string {
 		return getPublishableLocales(context.Request, context.currentUser)

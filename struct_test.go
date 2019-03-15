@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/moisespsena-go/aorm"
-	"github.com/aghape/l10n"
-	"github.com/aghape/core/test/utils"
+	"github.com/ecletus/l10n"
+	"github.com/ecletus/core/test/utils"
 )
 
 type Product struct {

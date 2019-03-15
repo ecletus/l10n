@@ -5,7 +5,7 @@ import (
 
 	"github.com/moisespsena-go/aorm"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/aghape/l10n"
+	"github.com/ecletus/l10n"
 
 	_ "github.com/go-sql-driver/mysql"
 )

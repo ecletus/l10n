@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/moisespsena-go/aorm"
-	"github.com/aghape/core/utils"
+	"github.com/ecletus/core/utils"
 )
 
 func beforeQuery(scope *aorm.Scope) {
