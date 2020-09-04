@@ -11,7 +11,7 @@ import (
 func beforeQuery(scope *aorm.Scope) {
 	if IsLocalizable(scope) {
 		quotedTableName := scope.QuotedTableName()
-		quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
+		quotedPrimaryKey := scope.Quote(scope.PrimaryKeyDbName())
 		_, hasDeletedAtColumn := scope.FieldByName("deleted_at")
 
 		locale, isLocale := getQueryLocale(scope)
@@ -51,7 +51,7 @@ func beforeCreate(scope *aorm.Scope) {
 			if isLocaleCreatable(scope) || !scope.PrimaryKeyZero() {
 				setLocale(scope, locale)
 			} else {
-				err := fmt.Errorf("the resource %v cannot be created in %v", scope.GetModelStruct().ModelType.Name(), locale)
+				err := fmt.Errorf("the resource %v cannot be created in %v", scope.Struct().Type.Name(), locale)
 				scope.Err(err)
 			}
 		} else {
@@ -83,15 +83,15 @@ func afterUpdate(scope *aorm.Scope) {
 			if locale, ok := getLocale(scope); ok {
 				if scope.DB().RowsAffected == 0 && !scope.PrimaryKeyZero() { //is locale and nothing updated
 					var count int
-					var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKey())
+					var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKeyDbName())
 
 					// if enabled soft delete, delete soft deleted records
 					if scope.HasColumn("DeletedAt") {
-						scope.NewDB().Unscoped().Where("deleted_at is not null").Where(query, locale, scope.PrimaryKeyValue()).Delete(scope.Value)
+						scope.NewDB().Unscoped().Where("deleted_at is not null").Where(query, locale, scope.PrimaryKey()).Delete(scope.Value)
 					}
 
 					// if no localized records exist, localize it
-					if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
+					if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKey()).Count(&count); count == 0 {
 						scope.DB().RowsAffected = scope.DB().Create(scope.Value).RowsAffected
 					}
 				}
